@@ -1,0 +1,967 @@
+openapi: '3.0.3'
+info:
+  title: Personal Financial Office Личный финансовый кабинет
+  version: 1.0.0
+servers:
+  - url: http://localhost:8083
+tags:
+  - name: auth
+    description: Регистрация, аутентификация пользователя
+  - name: user
+    description: Администрирование пользователей
+  - name: account
+    description: Выполнение операций со счетами пользователей
+  - name: rate
+    description: Информация о курсах валют
+  - name: trade
+    description: Торговые операции с валютами
+
+paths:
+  /api/v1/auth/register:
+    post:
+      summary: Регистрация пользователя
+      operationId: register
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+  /api/v1/auth/login:
+    post:
+      summary: Аутентификация пользователя
+      operationId: login
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JwtResponse'
+
+  /api/v1/users:
+    post:
+      summary: Получить список пользователей
+      operationId: getUsers
+      tags:
+        - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPageRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPageResponse'
+  /api/v1/users/{id}:
+    get:
+      summary: Получить пользователя по идентификатору
+      operationId: getUserById
+      tags:
+        - user
+      parameters:
+        - in: path
+          name: id
+          description: Идентификатор пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 333
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+    put:
+      summary: Изменить пользователя
+      operationId: updateUser
+      tags:
+        - user
+      parameters:
+        - in: path
+          name: id
+          description: Идентификатор пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 333
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+    delete:
+      summary: Удалить пользователя
+      operationId: deleteUser
+      tags:
+        - user
+      parameters:
+        - in: path
+          name: id
+          description: Идентификатор пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 333
+      responses:
+        '200':
+          description: OK
+  /api/v1/users/profile:
+    get:
+      summary: Получить профиль текущего пользователя
+      operationId: getUserProfile
+      tags:
+        - user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+  /api/v1/users/enable:
+    post:
+      summary: Активация / блокирование пользователя
+      operationId: block
+      tags:
+        - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserEnableRequest'
+      responses:
+        '200':
+          description: OK
+  /api/v1/users/password:
+    post:
+      summary: Изменить пароль пользователя
+      operationId: updatePassword
+      tags:
+        - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePwdRequest'
+      responses:
+        '200':
+          description: OK
+
+  /api/v1/accounts/users/{id}:
+    get:
+      summary: Получить информацию по счетам пользователя
+      operationId: getAccountsByUserId
+      tags:
+        - account
+      parameters:
+        - in: path
+          name: id
+          description: Идентификатор пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 333
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountResponse'
+  /api/v1/accounts/{id}:
+    get:
+      summary: Получить информацию по счету
+      operationId: getAccountById
+      tags:
+        - account
+      parameters:
+        - in: path
+          name: id
+          description: Идентификатор счета
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 333
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+    delete:
+      summary: Удалить счет пользователя
+      operationId: deleteAccountById
+      tags:
+        - account
+      parameters:
+        - in: path
+          name: id
+          description: Идентификатор счета
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 333
+      responses:
+        '200':
+          description: OK
+  /api/v1/accounts/:
+    post:
+      summary: Создать новый счет
+      operationId: createAccount
+      tags:
+        - account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+      responses:
+        '201':
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+  /api/v1/accounts/operation:
+    post:
+      summary: Выполнение операции по счету - пополнение счета пользователем, снятие денег, изменение остатка в результате торговых операций в пределах торговой сессии
+      operationId: operateAccount
+      tags:
+        - account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountOperationRequest'
+      responses:
+        '201':
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+  /api/v1/accounts/operation/list:
+    post:
+      summary: Список операций по счету за период
+      operationId: accountOperateList
+      tags:
+        - account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationListRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountOperationResponse'
+  /api/v1/accounts/enable:
+    post:
+      summary: Активация / блокирование счета пользователя по идентификатору
+      operationId: enableAccount
+      tags:
+        - account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountEnableRequest'
+      responses:
+        '200':
+          description: OK
+  /api/v1/accounts/enable/all:
+    post:
+      summary: Активация / блокирование всех счетов пользователя (id в теле запроса игнорируется)
+      operationId: enableAllAccounts
+      tags:
+        - account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountEnableRequest'
+      responses:
+        '200':
+          description: OK
+
+  /api/v1/rate/current:
+    post:
+      summary: Текущий курс валюты
+      operationId: getCurrencyRate
+      tags:
+        - rate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CurrentCurrencyRateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CurrencyRateResponse'
+  /api/v1/rate/range:
+    post:
+      summary: Курсы валюты за период
+      operationId: getCurrencyRateRange
+      tags:
+        - rate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RangeCurrencyRateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DateCurrencyRateResponse'
+  /api/v1/rate/currencyList:
+    post:
+      summary: Список валют
+      operationId: getCurrencyList
+      tags:
+        - rate
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CurrencyResponse'
+
+  /api/v1/trade/session:
+    post:
+      summary: Начало или окончание сессии торговли валютой
+      operationId: operateTradeSession
+      tags:
+        - trade
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TradeSessionRequest'
+      responses:
+        '200':
+          description: OK
+  /api/v1/trade/operation:
+    post:
+      summary: Выполнение торговой операции с валютой валютой
+      operationId: operateTrade
+      tags:
+        - trade
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TradeOperationRequest'
+      responses:
+        '201':
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeOperationResponse'
+  /api/v1/trade/operation/list:
+    post:
+      summary: Список торговых операций по счету за период
+      operationId: tradeOperationList
+      tags:
+        - trade
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationListRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TradeOperationResponse'
+
+
+components:
+  schemas:
+    CreateUserRequest:
+      type: object
+      description: Запрос регистрации пользователя
+      properties:
+        email:
+          type: string
+          description: Логин пользователя
+          example: ivanov
+        password:
+          type: string
+          description: Пароль
+          example: secret1E6
+        firstName:
+          type: string
+          description: Имя пользователя
+          example: Сергей
+        lastName:
+          type: string
+          description: Фамилия пользователя
+          example: Иванов
+        phone:
+          type: string
+          description: Телефон пользователя
+          example: 8(999)0010001
+    UpdateUserRequest:
+      type: object
+      description: Запос обновлеения информации пользователя
+      properties:
+        email:
+          type: string
+          description: Логин пользователя
+          example: ivanov
+        firstName:
+          type: string
+          description: Имя пользователя
+          example: Сергей
+        lastName:
+          type: string
+          description: Фамилия пользователя
+          example: Иванов
+        phone:
+          type: string
+          description: Телефон пользователя
+          example: 8(999)0010001
+    AuthRequest:
+      type: object
+      description: Данные для аутентификации
+      properties:
+        email:
+          type: string
+          description: Логин пользователя
+          example: ivanov
+        password:
+          type: string
+          description: Пароль
+          example: secret1E6
+    UpdatePwdRequest:
+      type: object
+      description: Данные для аутентификации
+      properties:
+        email:
+          type: string
+          description: Логин пользователя
+          example: ivanov
+        oldPassword:
+          type: string
+          description: Пароль
+          example: secret1E6
+        newPassword:
+          type: string
+          description: Пароль
+          example: newSecret
+    JwtResponse:
+      type: object
+      description: Токен авторизации
+      properties:
+        accessToken:
+          type: string
+          description: Токен авторизации
+          example: 1fn3459gf3p_23mj54p-5PONO(mk'
+        refreshToken:
+          type: string
+          description: Токен на запрос нового токена авторизации
+          example: f35=kvfr3v3ervkMPOnj4-JO()Ll''
+    UserEnableRequest:
+      type: object
+      description: Активация / блокировка пользователя
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Идентификатор счета
+          example: 465
+        enable:
+          type: boolean
+          description: Доступность пользователя (возможность работы, значения true / false)
+          example: true
+    UserResponse:
+      type: object
+      description: Данные пользователя
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Идентификатор задания
+          example: 45
+        email:
+          type: string
+          description: Логин пользователя
+          example: ivanov
+        firstName:
+          type: string
+          description: Имя пользователя
+          example: Сергей
+        lastName:
+          type: string
+          description: Фамилия пользователя
+          example: Иванов
+        phone:
+          type: string
+          description: Телефон пользователя
+          example: 8(999)0010001
+        enable:
+          type: boolean
+          description: Доступность пользователя (возможность работы, значения true / false)
+          example: true
+    UserPageRequest:
+      type: object
+      description: Запрос страницы списка пользователей
+      properties:
+        page:
+          description: Номер страницы
+          type: integer
+          example: 1
+        size:
+          description: Размер страницы (количество пользователей на странице)
+          type: integer
+          example: 20
+    UserPageResponse:
+      type: object
+      description: Страница списка пользователей
+      properties:
+        content:
+          description: Список пользователей
+          type: array
+          items:
+            $ref: '#/components/schemas/UserResponse'
+        page:
+          description: Номер страницы
+          type: integer
+          example: 1
+        size:
+          description: Размер страницы (количество пользователей на странице)
+          type: integer
+          example: 20
+        totalItems:
+          description: Всего пользователей
+          type: integer
+          format: int64
+          example: 2
+        totalPages:
+          description: Всего страниц
+          type: integer
+          example: 1
+    UserProfileResponse:
+      type: object
+      description: Данные профиля пользователя
+      properties:
+        user:
+          $ref: "#/components/schemas/UserResponse"
+        accounts:
+          type: array
+          items:
+            $ref:
+              "#/components/schemas/AccountResponse"
+
+    CreateAccountRequest:
+      type: object
+      description: Запрос на создание счета пользователя
+      properties:
+        currencyCharCode:
+          type: string
+          description: Символьный код валюты
+          example: USD
+    AccountResponse:
+      type: object
+      description: Данные счета пользователя
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Идентификатор счета
+          example: 465
+        userId:
+          type: integer
+          format: int64
+          description: Идентификатор пользователя
+          example: 45
+        currencyId:
+          type: string
+          description: Код валюты
+          example: R01235
+        currencyName:
+          type: string
+          description: Наименование валюты
+          example: Доллар США
+        currencyEngName:
+          type: string
+          description: Наименование валюты на английском
+          example: US Dollar
+        sum:
+          type: number
+          description: Сумма на счете
+          example: 0.00
+        enable:
+          type: boolean
+          description: Доступность счета
+          example: true
+    AccountSumRequest:
+      type: object
+      description: Запрос на изменение суммы на счете пользователя
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Идентификатор счета
+          example: 465
+        userId:
+          type: integer
+          format: int64
+          description: Идентификатор пользователя
+          example: 45
+        currencyCharCode:
+          type: string
+          description: Символьный код валюты
+          example: USD
+        sum:
+          type: number
+          description: Сумма на счете
+          example: 0.00
+    AccountOperationRequest:
+      type: object
+      description: Запрос на выполнение операции по счету
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Идентификатор счета
+          example: 465
+        operation:
+          type: string
+          description: Вид операции - пополнение (debit) или снятие (credit)
+          example: debit
+        sum:
+          type: number
+          description: Сумма на счете
+          example: 1000.00
+        description:
+          type: string
+          description: пополнение, снятие, изменение остатка в результате торгов
+          example: пополнение счета
+    AccountEnableRequest:
+      type: object
+      description: Активация / блокировка счета пользователя
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Идентификатор счета
+          example: 465
+        enable:
+          type: boolean
+          description: Доступность счета пользователя (возможность работы, значения true / false)
+          example: true
+    AccountOperationResponse:
+      type: object
+      description: Операция по счету пользователя (пополнение, снятие, изменение остатка после торгов)
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Идентификатор операции
+          example: 45
+        date:
+          type: string
+          format: date
+          description: Дата операции
+          example: 2022-09-22
+        accountId:
+          type: integer
+          format: int64
+          description: Идентификатор счета пользователя
+          example: 33
+        currencyId:
+          type: string
+          description: Идентификатор валюты
+          example: R01235
+        operation:
+          type: string
+          description: Вид операции - пополнение (debit) или снятие (credit)
+          example: credit
+        sum:
+          type: number
+          description: Сумма операции
+          example: 608,69
+        description:
+          type: string
+          description: пополнение, снятие, изменение остатка в результате торгов
+          example: изменение остатка в результате торгов
+
+    CurrentCurrencyRateRequest:
+      type: object
+      description: Запрос текущего курса валют
+      properties:
+        id:
+          type: string
+          description: Код валюты
+          example: R01235
+    CurrencyRateResponse:
+      type: object
+      description: Курс валюты
+      properties:
+        id:
+          type: string
+          description: Идентификатор валюты
+          example: R01235
+        numCode:
+          type: string
+          description: Цифровой код валюты
+          example: 840
+        charCode:
+          type: string
+          description: Символьный код валюты
+          example: USD
+        nominal:
+          type: integer
+          description: Номинал
+          example: 1
+        name:
+          type: string
+          description: Наименование валюты
+          example: Доллар США
+        value:
+          type: number
+          description: Курс
+          example: 60,8685
+    RangeCurrencyRateRequest:
+      type: object
+      description: Запрос курсов валют за период
+      properties:
+        id:
+          type: string
+          description: Код валюты
+          example: R01235
+        dateFrom:
+          type: string
+          format: date
+          description: Дата начала периода
+          example: 2022-09-22
+        dateTo:
+          type: string
+          format: date
+          description: Дата окончания периода
+          example: 2022-09-28
+    DateCurrencyRateResponse:
+      type: object
+      description: Курс валюты
+      properties:
+        date:
+          type: string
+          format: date
+          description: Дата курса валют
+          example: 2022-09-22
+        id:
+          type: string
+          description: Идентификатор валюты
+          example: R01235
+        nominal:
+          type: integer
+          description: Номинал
+          example: 1
+        value:
+          type: number
+          description: Курс
+          example: 60,8685
+    RangeCurrencyRateResponse:
+      type: object
+      description: Курсы валюты за период
+      properties:
+        dateFrom:
+          type: string
+          format: date
+          description: Дата начала периода
+          example: 2022-09-22
+        dateTo:
+          type: string
+          format: date
+          description: Дата окончания периода
+          example: 2022-09-28
+        rates:
+          type: array
+          items:
+            $ref:
+              "#/components/schemas/DateCurrencyRateResponse"
+    CurrencyResponse:
+      type: object
+      description: Курс валюты
+      properties:
+        id:
+          type: string
+          description: Идентификатор
+          example: R01235
+        numCode:
+          type: string
+          description: Цифровой код валюты
+          example: 840
+        charCode:
+          type: string
+          description: Символьный код валюты
+          example: USD
+        nominal:
+          type: integer
+          description: Номинал
+          example: 1
+        name:
+          type: string
+          description: Наименование валюты
+          example: Доллар США
+
+    TradeSessionRequest:
+      type: object
+      description: Запрос на открытие / закрытие торговой сессии
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: Идентификатор пользователя
+          example: 45
+        enable:
+          type: boolean
+          description: Открыть / закрыть торговую сессию (true / false)
+          example: true
+    TradeOperationRequest:
+      type: object
+      description: Запрос на покупку или продажу валюты по текущему курсу
+      properties:
+        currencyId:
+          type: string
+          description: Идентификатор валюты
+          example: R01235
+        operation:
+          type: string
+          description: Вид операции - покупка (buy) или продажа (sell)
+          example: buy
+        currencyRate:
+          type: number
+          description: Курс валюты, по которому совершена покупка / продажа
+          example: 60,8685
+        amount:
+          type: integer
+          description: количество валюты
+          example: 10
+        sum:
+          type: number
+          description: Сумма операции
+          example: 608,69
+    TradeOperationResponse:
+      type: object
+      description: Торговая операция (покупка или продажа валюты)
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Идентификатор операции
+          example: 45
+        date:
+          type: string
+          format: date
+          description: Дата операции
+          example: 2022-09-22
+        accountId:
+          type: integer
+          format: int64
+          description: Идентификатор счета пользователя
+          example: 33
+        currencyId:
+          type: string
+          description: Идентификатор валюты
+          example: R01235
+        operation:
+          type: string
+          description: Вид операции - покупка (buy) или продажа (sell)
+          example: buy
+        currencyRate:
+          type: number
+          description: Курс валюты, по которому совершена покупка / продажа
+          example: 60,8685
+        amount:
+          type: integer
+          description: количество валюты
+          example: 10
+        sum:
+          type: number
+          description: Сумма операции
+          example: 608,69
+    OperationListRequest:
+      type: object
+      description: Запрос списка торговых операций за период
+      properties:
+        accountId:
+          type: integer
+          format: int64
+          description: Идентификатор счета пользователя
+          example: 33
+        dateFrom:
+          type: string
+          format: date
+          description: Дата начала
+          example: 2022-09-22
+        dateTo:
+          type: string
+          format: date
+          description: Дата окончания
+          example: 2022-09-22
+
+
